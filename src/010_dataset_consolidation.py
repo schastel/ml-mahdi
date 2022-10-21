@@ -63,7 +63,7 @@ def scrub_html(string):
             logger.error("Type %s not supported", type(e))
             logger.error(e)
             raise e
-    return ";".join(_str_list)
+    return " ".join(_str_list)
 
 
 def dig(json_object, category_id = None):
