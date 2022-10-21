@@ -220,10 +220,15 @@ def main(arguments):
         json.dump(flattened_products, out)
 
     # Read it as a Huggingface-dataset
-    products = ds.load_dataset("json", data_files = "all.json")
+    products = ds.load_dataset("json", data_files = json_outfile)
     # And dump it
     print(products)
-    products.save_to_disk("prepared-%s" % path_to_data.split('/')[-1])
+    # Saving is idempotent but for the train/state.json fingerprint element
+    outdir = "prepared-%s" % path_to_data.split('/')[-1]
+    logger.info("Writing output huggingface dataset to %s", outdir)
+    products.save_to_disk(outdir)
+    os.unlink(json_outfile)
+    return outdir
     
 if __name__ == "__main__":
     import sys
