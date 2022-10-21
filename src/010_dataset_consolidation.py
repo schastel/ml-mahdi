@@ -37,10 +37,33 @@ import datasets as ds
 import os
 import json
 import logging
+import lxml.html as html
 
 logger = logging.getLogger(__name__)
 ds.utils.logging.set_verbosity(logging.ERROR)
 ds.utils.logging.disable_progress_bar()
+
+
+def scrub_html(string):
+    """
+    Remove all HTML elements from string
+    """
+    if string is None:
+        return ""
+    _html_list = html.fragments_fromstring(string)
+    _str_list = []
+    for e in _html_list:
+        try:
+            if type(e) is str:
+                _str_list.append(e)
+            else:
+                if e.text is not None:
+                    _str_list.append(e.text)
+        except TypeError as e:
+            logger.error("Type %s not supported", type(e))
+            logger.error(e)
+            raise e
+    return ";".join(_str_list)
 
 
 def dig(json_object, category_id = None):
@@ -57,6 +80,10 @@ def dig(json_object, category_id = None):
         # We know that it is a product since it has an "id" data member
         # Add the category_id to the object
         json_object["category_id"] = category_id
+        # Scrub HTML from shortDescription 
+        logger.debug("Before: %s", json_object["shortDescription"])
+        json_object["shortDescription"] = scrub_html(json_object["shortDescription"])
+        logger.debug(" After: %s", json_object["shortDescription"])
         # ... and return it as is, i.e. return a object
         # which has the JSON object type (this matters)
         return json_object
